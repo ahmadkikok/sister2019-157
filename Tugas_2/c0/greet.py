@@ -1,15 +1,53 @@
-import random
+import os
 
+class CRUDList(object):
 
-class GreetServer(object):
     def __init__(self):
         pass
 
-    def get_greet(self, name='NoName'):
-        lucky_number = random.randint(1, 100000)
-        return "Hello {}, this is your lucky number {}".format(name, lucky_number)
+    def create(self,filename="",value=""):
+        path = os.getcwd()
+        name = filename
+        filename = os.path.join(path, filename)
+        with open(filename, "w+") as f:
+            f.write(value)
+        return "[ {} ]\n{}".format(name,value)
 
+    def update(self,filename="",value=""):
+        path = os.getcwd()
+        name = filename
+        filename = os.path.join(path, filename)
+        if(os.path.exists(filename)):
+            with open(filename, "w+") as f:
+                f.write(value)
+            return "[ {} ]\n{}".format(name,value)
+        else:
+            return "File not found"
+
+    def read(self,filename=""):
+        path = os.getcwd()
+        name = filename
+        filename = os.path.join(path, filename)
+        if(os.path.exists(filename)):
+            with open(filename) as r:
+                return "[ {} ]\n{}".format(name, r.read())
+        else:
+            return "File not found"
+
+    def delete(self,filename=""):
+        path = os.getcwd()
+        filename = os.path.join(path, filename)
+        if(os.path.exists(filename)):
+            os.remove(filename)
+            return("Success")
+        else:
+            return "File not found"
+
+    def list(self):
+        path = os.getcwd()
+        files = []
+        for root, dirs, files in os.walk(path):
+            return files
 
 if __name__ == '__main__':
-    k = GreetServer()
-    print(k.get_greet('royyana'))
+    k = CRUDList()
