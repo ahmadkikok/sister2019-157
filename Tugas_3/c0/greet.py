@@ -5,59 +5,58 @@ import Pyro4.errors
 import threading
 
 class CRUDList(object):
-
     def __init__(self):
         self.connected_device = []
         self.connected_device_thread_job = []
 
     @Pyro4.expose
-    def connected_device_list(self):
-        return 'connected device : '+', '.join(self.connected_device)
+    def connected_device_list(self) -> str:
+        return 'connected device : ' + ', '.join(self.connected_device)
 
     @Pyro4.expose
-    def connected_device_ls(self):
+    def connected_device_ls(self) -> str:
         return ','.join(self.connected_device)
 
     @Pyro4.expose
     def connected_device_add(self, id):
-        print('register '+ id)
+        print('register ' + id)
         self.connected_device.append(id)
 
     @Pyro4.expose
     def connected_device_delete(self, id):
-        print('unregister '+ id)
+        print('unregister ' + id)
         self.connected_device.remove(id)
 
     @Pyro4.expose
-    def command_not_found(self):
+    def command_not_found(self) -> str:
         return "command not found"
 
     @Pyro4.expose
-    def command_success(self):
+    def command_success(self) -> str:
         return "operation success"
 
     @Pyro4.expose
-    def bye(self):
+    def bye(self) -> str:
         return "bye!"
 
     @Pyro4.expose
-    def ok(self):
+    def ok(self) -> str:
         return "ok"
 
     @Pyro4.expose
-    def fail(self):
+    def fail(self) -> str:
         return "fail"
 
     @Pyro4.expose
-    def ping_interval(self):
+    def ping_interval(self) -> int:
         return 3
 
     @Pyro4.expose
-    def max_retries(self):
+    def max_retries(self) -> int:
         return 2
 
     @Pyro4.expose
-    def new_thread_job(self, id):
+    def new_thread_job(self, id) -> str:
         t = threading.Thread(target=self.__new_thread_job, args=(id,))
         t.start()
         self.connected_device_thread_job.append(t)
@@ -82,6 +81,36 @@ class CRUDList(object):
                 print(str(e))
                 break
             time.sleep(self.ping_interval())
+
+    def __delete_file(self, path, name) -> str:
+        res = self.command_success()
+        try:
+            os.remove(os.path.join(path, name))
+        except Exception as e:
+            return str(e)
+        return res
+
+    def __process_file(self, path, name, operation, *args, **kwargs) -> str:
+        res = self.command_success()
+        try:
+            f = open(os.path.join(path, name), operation)
+            if operation == "r":
+                res = f.read()
+            elif operation == "a+":
+                f.write(kwargs.get('content', None))
+            f.close()
+        except Exception as e:
+            return str(e)
+        return res
+
+    def __root_folder_exists(self, root):
+        if not os.path.exists(root):
+            os.makedirs(root)
+
+    def __get_storage_path(self) -> str:
+        root = os.path.dirname(os.path.abspath(__file__)) + "/storage"
+        self.__root_folder_exists(root)
+        return root
 
     @Pyro4.expose
     def create(self,filename="",value=""):
@@ -131,6 +160,3 @@ class CRUDList(object):
         files = []
         for root, dirs, files in os.walk(path):
             return files
-
-if __name__ == '__main__':
-    k = CRUDList()

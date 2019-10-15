@@ -1,4 +1,4 @@
-from greet import  *
+from greet import *
 import Pyro4
 
 def server_start():
